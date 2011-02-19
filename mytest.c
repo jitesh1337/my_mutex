@@ -22,9 +22,9 @@ void initialize()
 
 void *thread_func(void *arg)
 {
-	int *count = (int *)arg;
+	//int *count = (int *)arg;
 
-	mythread_t me = mythread_self();
+//	mythread_t me = mythread_self();
 	/*
 	*count = *count + 50;
 
