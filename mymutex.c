@@ -19,13 +19,13 @@ int mythread_mutex_init(mythread_mutex_t *mutex, mythread_mutex_attr_t *attr)
 
 int mythread_mutex_lock(mythread_mutex_t *mutex)
 {
-	mythread_mutex_q_t *mynode;
-	mythread_mutex_q_t *pred;
+	mythread_queue_t mynode;
+	mythread_queue_t pred;
 
 	int wait_count=0;
 
 	mythread_enter_kernel();
-	mynode = (mythread_mutex_q_t *)malloc(sizeof(mythread_mutex_q_t));
+	mynode = (mythread_queue_t)malloc(sizeof(struct mythread_queue));
 	mythread_leave_kernel();
 	
 	if (mynode == NULL ) {
@@ -69,7 +69,7 @@ int mythread_mutex_unlock(mythread_mutex_t *mutex)
         printf("unlock \n");
         mythread_leave_kernel();
 
-	mythread_mutex_q_t *mynode;
+	mythread_queue_t mynode;
 	mynode = mutex->head;
 
 	if ( mynode->next == NULL ) {
