@@ -19,16 +19,15 @@ int mythread_mutex_init(mythread_mutex_t *mutex, mythread_mutex_attr_t *attr)
 
 int mythread_mutex_lock(mythread_mutex_t *mutex)
 {
-	mythread_queue_t mynode;
-	mythread_queue_t pred;
+	mythread_mutex_queue_node_t mynode, pred;
 
 	int wait_count=0;
 
 	mythread_enter_kernel();
-	mynode = (mythread_queue_t)malloc(sizeof(struct mythread_queue));
+	mynode = (mythread_mutex_queue_node_t)malloc(sizeof(struct mythread_mutex_queue_node));
 	mythread_leave_kernel();
 	
-	if (mynode == NULL ) {
+	if (mynode == NULL) {
 		printf("Enter while allocating memory\n");
 		return -ENOMEM;
 	}
@@ -46,7 +45,7 @@ int mythread_mutex_lock(mythread_mutex_t *mutex)
 
 	if ( pred != NULL ) {
 		mynode->locked = 1;
-		pred->next = mynode;
+		pred->next = (mythread_queue_t)mynode;
 
 		while (wait_count<100 && mynode->locked) wait_count++;
 		
@@ -67,7 +66,7 @@ int mythread_mutex_lock(mythread_mutex_t *mutex)
 
 int mythread_mutex_unlock(mythread_mutex_t *mutex)
 {
-	mythread_queue_t mynode;
+	mythread_mutex_queue_node_t mynode;
 	mynode = mutex->head;
 
 	if ( mynode->next == NULL ) {
@@ -77,9 +76,9 @@ int mythread_mutex_unlock(mythread_mutex_t *mutex)
 		while ( mynode->next == NULL ) ;
 	}
 
-	futex_up(&mynode->next->wait_block);
+	futex_up(&((mythread_mutex_queue_node_t)mynode->next)->wait_block);
 
-	mynode->next->locked = 0;
+	((mythread_mutex_queue_node_t)mynode->next)->locked = 0;
 
 	mynode->next = NULL;
 

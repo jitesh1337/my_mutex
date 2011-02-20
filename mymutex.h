@@ -4,12 +4,16 @@ typedef struct mythread_mutex_attr {
 	int align;  
 }mythread_mutex_attr_t;
 
-typedef struct mythread_mutex {
-	
-	mythread_queue_t head;
-	mythread_queue_t tail;
+typedef struct mythread_mutex_queue_node {
+	mythread_queue_t prev, next;
+	int locked;
+	struct futex wait_block;
+} *mythread_mutex_queue_node_t;
 
-}mythread_mutex_t;
+typedef struct mythread_mutex {
+	mythread_mutex_queue_node_t head;
+	mythread_mutex_queue_node_t tail;
+} mythread_mutex_t;
 
 extern int mythread_mutex_init(mythread_mutex_t *, mythread_mutex_attr_t *);
 extern int mythread_mutex_lock(mythread_mutex_t *);

@@ -8,11 +8,6 @@
 #include "futex.h"
 
 typedef struct mythread_queue {
-
   void *item;
   struct mythread_queue *prev, *next;
-
-  int locked;
-  struct futex wait_block;
-
 } *mythread_queue_t;

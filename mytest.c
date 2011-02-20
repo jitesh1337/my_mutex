@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 #include <mythread.h>
 #include "mymutex.h"
@@ -22,6 +23,7 @@ void initialize()
 
 void *thread_func(void *arg)
 {
+	int i;
 	//int *count = (int *)arg;
 
 //	mythread_t me = mythread_self();
@@ -41,6 +43,7 @@ void *thread_func(void *arg)
 	mythread_mutex_lock(&mut);
 	//printf("ekde!\n");	
 	//mythread_yield();
+	for(i = 0; i < INT_MAX/10; i++);
 	glb += 1;
 	mythread_mutex_unlock(&mut);
 
