@@ -35,11 +35,11 @@ int mythread_mutex_lock(mythread_mutex_t *mutex)
 	
 	mythread_enter_kernel();
 	count++;
-	printf("%d\n",count);
+	//printf("%d\n",count);
 	mythread_leave_kernel();
 
 	mynode->locked = 0;
-	futex_init(&mynode->wait_block, 1);
+	futex_init(&mynode->wait_block, 0);
 	mynode->next = NULL;
 
 	pred = compare_and_swap_ptr(&mutex->tail, mynode, mutex->tail);
@@ -54,8 +54,10 @@ int mythread_mutex_lock(mythread_mutex_t *mutex)
 		printf("%d %d\n",count, wait_count);
 		mythread_leave_kernel();
 
-		futex_down(&mynode->wait_block);
-		futex_down(&mynode->wait_block);
+		if ( wait_count == 100 )
+			futex_down(&mynode->wait_block);
+
+		while ( mynode->locked ) ;
 	}
 
 	mutex->head = mynode;
@@ -65,10 +67,6 @@ int mythread_mutex_lock(mythread_mutex_t *mutex)
 
 int mythread_mutex_unlock(mythread_mutex_t *mutex)
 {
-        mythread_enter_kernel();
-        printf("unlock \n");
-        mythread_leave_kernel();
-
 	mythread_queue_t mynode;
 	mynode = mutex->head;
 
@@ -79,8 +77,10 @@ int mythread_mutex_unlock(mythread_mutex_t *mutex)
 		while ( mynode->next == NULL ) ;
 	}
 
-	mynode->next->locked = 0;
 	futex_up(&mynode->next->wait_block);
+
+	mynode->next->locked = 0;
+
 	mynode->next = NULL;
 
 	return 0;
