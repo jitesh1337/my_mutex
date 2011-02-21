@@ -76,6 +76,7 @@ int mythread_mutex_unlock(mythread_mutex_t *mutex)
 		while ( mynode->next == NULL ) ;
 	}
 
+	count--;
 	futex_up(&((mythread_mutex_queue_node_t)mynode->next)->wait_block);
 
 	((mythread_mutex_queue_node_t)mynode->next)->locked = 0;
