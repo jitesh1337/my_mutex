@@ -3,16 +3,17 @@
 
 #include "mymutex.h"
 
-/* TODO - 100 tries on a wait-loop, sleep on futex.
- */
-
 static int count;
 
 int mythread_mutex_init(mythread_mutex_t *mutex, mythread_mutex_attr_t *attr)
 {
 
-	mutex->head = NULL;
-	mutex->tail = NULL;
+	*mutex = (mythread_mutex_t)malloc(sizeof(struct mythread_mutex));
+	if ( (*mutex) == NULL)
+		return -ENOMEM;
+
+	(*mutex)->head = NULL;
+	(*mutex)->tail = NULL;
 
 	return 0;
 }
@@ -41,7 +42,7 @@ int mythread_mutex_lock(mythread_mutex_t *mutex)
 	futex_init(&mynode->wait_block, 0);
 	mynode->next = NULL;
 
-	pred = compare_and_swap_ptr(&mutex->tail, mynode, mutex->tail);
+	pred = compare_and_swap_ptr(&(*mutex)->tail, mynode, (*mutex)->tail);
 
 	if ( pred != NULL ) {
 		mynode->locked = 1;
@@ -59,7 +60,7 @@ int mythread_mutex_lock(mythread_mutex_t *mutex)
 		while ( mynode->locked ) ;
 	}
 
-	mutex->head = mynode;
+	(*mutex)->head = mynode;
 	
 	return 0;
 }
@@ -67,10 +68,10 @@ int mythread_mutex_lock(mythread_mutex_t *mutex)
 int mythread_mutex_unlock(mythread_mutex_t *mutex)
 {
 	mythread_mutex_queue_node_t mynode;
-	mynode = mutex->head;
+	mynode = (*mutex)->head;
 
 	if ( mynode->next == NULL ) {
-		if ( compare_and_swap_ptr(&mutex->tail, NULL, mynode) == mynode ) {
+		if ( compare_and_swap_ptr(&(*mutex)->tail, NULL, mynode) == mynode ) {
 			return 0;
 		}
 		while ( mynode->next == NULL ) ;
@@ -88,8 +89,10 @@ int mythread_mutex_unlock(mythread_mutex_t *mutex)
 
 int mythread_mutex_destroy(mythread_mutex_t *mutex)
 {
-	mutex->head = NULL;
-	mutex->tail = NULL;
+	(*mutex)->head = NULL;
+	(*mutex)->tail = NULL;
+
+	free(*mutex);
 
 	return 0;
 }
