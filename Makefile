@@ -24,7 +24,7 @@ mytestcond: mymutex.o mytestcond.o $(LIB) $(INC)
 	$(CC) -o mytestcond $(CFLAGS) $(EXTRA_CFLAGS) mytestcond.o mycond.o mymutex.o $(LIB)
 
 clean:
-	rm -f $(OBJS) mytest *~
+	rm -f $(OBJS) mytest mytestcond *~
 tags:
 	find . -name "*.[cChH]" | xargs ctags
 	find . -name "*.[cChH]" | etags -
