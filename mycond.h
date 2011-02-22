@@ -8,6 +8,7 @@ typedef struct mythread_condattr {
 
 typedef struct mythread_cond {
 	mythread_queue_t head, tail;
+	struct futex cond_atomicity;
 } *mythread_cond_t;
 
 extern int mythread_cond_wait(mythread_cond_t *cond, mythread_mutex_t *mymutex);
