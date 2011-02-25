@@ -45,8 +45,11 @@ int mythread_mutex_lock(mythread_mutex_t *mutex)
 	futex_init(&mynode->wait_block, 0);
 	mynode->next = NULL;
 
-	/* Try to put mynode to the tail */
-	pred = compare_and_swap_ptr(&(*mutex)->tail, mynode, (*mutex)->tail);
+	/* Put mynode to the tail */
+	do {
+		pred = compare_and_swap_ptr(&(*mutex)->tail, mynode, (*mutex)->tail);
+	} while (pred == (*mutex)->tail);
+
 	if (pred != NULL) {
 		/* Someone already has the lock (and we put ourselves on the tail */
 		mynode->locked = 1;
