@@ -1,3 +1,11 @@
+/* Single Author info:
+ *      jhshah	Jitesh H  Shah
+ * Group info:
+ *      jhshah     Jitesh H Shah
+ *      sskanitk  Salil S Kanitkar
+ *      ajalgao    Aditya A Jalgaonkar
+ */
+
 #include <mythread.h>
 #include <mymutex.h>
 #include <mycond.h>

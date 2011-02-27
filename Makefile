@@ -1,3 +1,12 @@
+# Single Author info:
+#     sskanitk  Salil S Kanitkar
+#     jhshah	Jitesh H  Shah
+# Group info:
+#     jhshah     Jitesh H Shah
+#     sskanitk  Salil S Kanitkar
+#     ajalgao    Aditya A Jalgaonkar
+
+
 SRCS =  mymutex.c mytest_mutex.c mytest_cond.c mycond.c mytest_p2.c board.c
 INC = futex.h  futex_inline.h  myatomic.h  mythread.h  myqueue.h board.h mymutex.h mycond.h
 OBJS = $(SRCS:.c=.o)
