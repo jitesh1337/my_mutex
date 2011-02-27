@@ -10,14 +10,12 @@ mythread_mutex_t mut;
 
 void *fun(void *arg)
 {
-	//int i;
 
 	mythread_mutex_lock(&mut);
-	printf("Will now wait\n"); fflush(stdout);
+	printf("[%lx] Waiting for a signal\n", (unsigned long)mythread_self()); fflush(stdout);
 	mythread_cond_wait(&cond, &mut);
-	//for(i = 0; i < INT_MAX/10; i++);
 	mythread_cond_signal(&cond);
-	printf("Exiting \n"); fflush(stdout);
+	printf("[%lx] Exiting \n", (unsigned long)mythread_self()); fflush(stdout);
 	mythread_mutex_unlock(&mut);
 	mythread_exit(NULL);
 	return NULL;
@@ -35,13 +33,13 @@ int main()
 		mythread_create(&thread[i], NULL, fun, NULL);
 	for(i = 0; i < INT_MAX/10; i++);
 
-	printf("Broadcast\n"); fflush(stdout);
 	mythread_cond_signal(&cond);
-	printf("Now join\n"); fflush(stdout);
 	for(i = 0; i < NTHREADS; i++)
 		mythread_join(thread[i], NULL);	
-	printf("main exit\n"); fflush(stdout);
+	printf("Main exit\n"); fflush(stdout);
 
+	printf("What this test was about:\n");
+	printf("%d threads wait on a condition variable. Main does a signal and each woken up threads continue to signal other sleeping threads till all of them exit\n", NTHREADS);
 	mythread_exit(NULL);
 	mythread_cond_destroy(&cond);
 	mythread_mutex_destroy(&mut);

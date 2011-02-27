@@ -23,27 +23,7 @@ void initialize()
 
 void *thread_func(void *arg)
 {
-	//int i;
-	//int *count = (int *)arg;
-
-//	mythread_t me = mythread_self();
-	/*
-	*count = *count + 50;
-
-	mythread_enter_kernel();
-	printf("Thread %ld: adds 50 : %d\n", (long int)(me->tid), *count);
-	mythread_leave_kernel();
-
-	*count = *count + 50;
-
-	mythread_enter_kernel();
-	printf("Thread %ld: again adds 50 : %d\n", (long int)(me->tid), *count);
-	mythread_leave_kernel();
-	*/
 	mythread_mutex_lock(&mut);
-	//printf("ekde!\n");	
-	//mythread_yield();
-	//for(i = 0; i < INT_MAX/10; i++);
 	glb += 1;
 	mythread_mutex_unlock(&mut);
 
@@ -59,10 +39,6 @@ void *thread_func(void *arg)
 	glb += 1;
 	mythread_mutex_unlock(&mut);
 
-	/*mythread_enter_kernel();
-	printf("Thread %d incremented glb to : %d\n",(long int)(me->tid), glb);
-	mythread_leave_kernel();
-	*/
 	mythread_exit(NULL);
 	return NULL;
 }
@@ -81,6 +57,9 @@ int main()
 
 	initialize();
 
+	printf("Starting %d threads.\n", NTHREADS);
+	printf("Each thread will lock a mutex 4 times and add 1 to a global variable each time\n");
+	printf("So the total count should be : %d\n", NTHREADS*4);
 	for (i = 0; i < NTHREADS; i++) {
 		count[i] = i;
 		mythread_create(&threads[i], NULL, thread_func, &count[i]);
@@ -92,7 +71,7 @@ int main()
 
 	mythread_mutex_destroy(&mut);
 
-	printf("Final glb val: %d\n",glb);
+	printf("Final count: %d\n",glb);
 
 	mythread_exit(NULL);
 
