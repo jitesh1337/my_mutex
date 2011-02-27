@@ -20,6 +20,7 @@ int mythread_mutex_init(mythread_mutex_t *mutex, mythread_mutex_attr_t *attr)
 
 	(*mutex)->head = NULL;
 	(*mutex)->tail = NULL;
+	(*mutex)->__q = NULL;
 	return 0;
 }
 
@@ -42,7 +43,6 @@ int mythread_mutex_lock(mythread_mutex_t *mutex)
 	
 	/* Initialise the allocated node */
 	mynode->locked = 0;
-	futex_init(&mynode->wait_block, 0);
 	mynode->next = NULL;
 
 	/* Put mynode to the tail */
@@ -57,15 +57,19 @@ int mythread_mutex_lock(mythread_mutex_t *mutex)
 
 		/* Try to acquire the lock for some time. If we fail, we'll sleep */
 		while (wait_count<100 && mynode->locked) wait_count++;
-		
-		/* Failed to acquire lock. Will sleep. */
-		if (wait_count == 100)
-			futex_down(&mynode->wait_block);
+	
 
-		/* We are woken up, but there might be a window where we still
-		 * haven't got the lock. So, loop on the lock for a while
+		mythread_enter_kernel();
+		/* Before we enter the kernel, some could have unlocked us. Possible race.
+		 * So, the following "if" should check whether we were unlocked in the meanwhile.
 		 */
-		while (mynode->locked);
+		if (wait_count == 100 && mynode->locked) {
+			/* Set state to 1, to show that we are sleeping.
+			 * If we are NOT, just setting locked = 0 will unlock us
+			 */
+			mythread_block(&(*mutex)->__q, 1);
+		} else	
+			mythread_leave_kernel();
 	}
 
 	/* We got the lock means we are at the head of the queue */
@@ -94,13 +98,19 @@ int mythread_mutex_unlock(mythread_mutex_t *mutex)
 		while (mynode->next == NULL);
 	}
 
-	/* Wake-up sleeping process */
-	futex_up(&((mythread_mutex_queue_node_t)mynode->next)->wait_block);
-
-	/* Unlock other process */
+	mythread_enter_kernel();
+	/* Unlock other thread */
 	((mythread_mutex_queue_node_t)mynode->next)->locked = 0;
-
 	mynode->next = NULL;
+
+	/* Check whether the target thread was sleeping. If it wasn't, we don't need to unblock
+	 */
+	 if ((*mutex)->__q != NULL && ((mythread_t)(*mutex)->__q->item)->state != 0)
+		/* Wake-up sleeping process */
+		mythread_unblock(&(*mutex)->__q, 1);
+	else 
+		mythread_leave_kernel(); 
+
 	return 0;
 }
 

@@ -16,11 +16,11 @@ int mythread_cond_wait(mythread_cond_t *cond, mythread_mutex_t *mutex)
 	/* At this stage, we are inside a critical section protected by	
 	 * "mutex". So, we are safe from race conditions.
 	 */
-
+	futex_down(&(*cond)->cond_atomicity);
+	mythread_enter_kernel();
 	/* Remove ourselves from the run-q and add to the condition variable
 	 * q
 	 */
-	mythread_enter_kernel();
 	mythread_block_phase1(&(*cond)->head, 0);
 
 	/* In the next step, we are going to release the mutex, which will
@@ -28,7 +28,6 @@ int mythread_cond_wait(mythread_cond_t *cond, mythread_mutex_t *mutex)
 	 * sleeping yet and we get a signal. The signal will be lost. 
 	 * Hence, enter another critical region to avoid a lost signal.
 	 */
-	futex_down(&(*cond)->cond_atomicity);
 	mythread_mutex_unlock(mutex);
 
 	/* Enter kernel. Another critical section */

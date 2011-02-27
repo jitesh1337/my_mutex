@@ -84,6 +84,7 @@ void* hacker(void *arg)
       while ( (boardHackerCount+boardSerfCount) == NUM_TO_BOARD) {
 	mythread_cond_wait(&for_Restart_cond, &for_Restart_mut);
 	if ( myleave == 1 ) {
+	mythread_mutex_unlock(&for_Restart_mut);
 	  if ( convertToSerf == 1 )
 	    leave((void *)&iSerf);
 	  else
@@ -100,6 +101,7 @@ void* hacker(void *arg)
       while( (invalidCond==1) ) {
 	mythread_cond_wait(&for_Invalid_cond, &for_Invalid_mut);
 	if ( myleave == 1 ) {
+	 mythread_mutex_unlock(&for_Invalid_mut);
 	  leave((void *)&iHacker);
 	  mythread_exit(NULL);
 	}
@@ -122,6 +124,7 @@ void* hacker(void *arg)
     while( (boardHackerCount+boardSerfCount) != NUM_TO_BOARD ) {
       mythread_cond_wait(&for_Boarding_cond, &for_Boarding_mut);
       if ( myleave == 1 ) {
+	  mythread_mutex_unlock(&for_Boarding_mut);
 	  if ( convertToSerf == 1 )
 	    leave((void *)&iSerf);
 	  else
@@ -228,6 +231,7 @@ void* serf(void *arg)
       while ( (boardHackerCount+boardSerfCount) == NUM_TO_BOARD) {
 	mythread_cond_wait(&for_Restart_cond, &for_Restart_mut);
 	if ( myleave == 1 ) {
+	 mythread_mutex_unlock(&for_Restart_mut);
 	  leave((void *)&iSerf);
 	  mythread_exit(NULL);
 	}
@@ -241,6 +245,7 @@ void* serf(void *arg)
       while( (invalidCond==1) ) {
 	mythread_cond_wait(&for_Invalid_cond, &for_Invalid_mut);
 	if ( myleave == 1 ) {
+	mythread_mutex_unlock(&for_Invalid_mut);
 	  leave((void *)&iSerf);
 	  mythread_exit(NULL);
 	}
@@ -258,6 +263,7 @@ void* serf(void *arg)
     while( (boardHackerCount+boardSerfCount) != NUM_TO_BOARD ) {
       mythread_cond_wait(&for_Boarding_cond, &for_Boarding_mut);
       if ( myleave == 1 ) {
+	mythread_mutex_unlock(&for_Boarding_mut);  
 	leave((void *)&iSerf);
 	mythread_exit(NULL);
       }
@@ -382,7 +388,8 @@ int main(int argc, char** argv)
 		if ( numOfHacker == 0 && numOfSerf == 0 )
 			break;
 
-		mythread_setconcurrency(numOfHacker + numOfSerf + 1);
+		//mythread_setconcurrency(numOfHacker + numOfSerf + 1);
+		mythread_setconcurrency(5);
 
 		for ( i=0 ; i<(numOfHacker+numOfSerf) ; i++ )
 		        scanf("%d", &(th_arg[i]));

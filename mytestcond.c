@@ -10,12 +10,13 @@ mythread_mutex_t mut;
 
 void *fun(void *arg)
 {
-	int i;
+	//int i;
 
 	mythread_mutex_lock(&mut);
 	printf("Will now wait\n"); fflush(stdout);
 	mythread_cond_wait(&cond, &mut);
-	for(i = 0; i < INT_MAX/10; i++);
+	//for(i = 0; i < INT_MAX/10; i++);
+	mythread_cond_signal(&cond);
 	printf("Exiting \n"); fflush(stdout);
 	mythread_mutex_unlock(&mut);
 	mythread_exit(NULL);
@@ -35,7 +36,7 @@ int main()
 	for(i = 0; i < INT_MAX/10; i++);
 
 	printf("Broadcast\n"); fflush(stdout);
-	mythread_cond_broadcast(&cond);
+	mythread_cond_signal(&cond);
 	printf("Now join\n"); fflush(stdout);
 	for(i = 0; i < NTHREADS; i++)
 		mythread_join(thread[i], NULL);	
