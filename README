@@ -1,0 +1,103 @@
+Aim:
+----------------------------- 
+Implementation of synchronization primitive for a user-level threads library mythread.a
+
+
+Methods/Interface provided:
+-----------------------------
+Mutex Implementation for mythread.a -
+1. mythread_mutex_init
+2. mythread_mutex_destroy
+3. mythread_mutex_lock
+4. mythread_mutex_unlock
+
+Condition Variable Implementation for mythread.a -
+1. mythread_cond_init
+2. mythread_cond_destroy
+3. mythread_cond_lock
+4. mythread_cond_unlock
+5. mythread_cond_broadcast
+
+These methods have the same signature as their corresponding counterparts in the POSIX threads standard with pthread_
+replaced by mythread_.
+
+
+Members:
+-------
+Jitesh Shah       - jhshah
+Salil Kanitkar    - sskanitk
+Aditya Jalgaonkar - ajalgao
+
+
+How to Build:
+------------
+Our Makefile provides a bunch of targets; each one builds a particular part 
+of the project.
+Refer to the following commands for building ->
+
+Compiling:
+
+     $ make
+# This is equivalent to "make all" and "make a5" which can also be alternatively used.
+# It compiles all the code files, creates the corresponding object files and builds 
+# all the incorporated test files viz. mytest_mutex, mytest_cond and mytest_p2
+            
+Library Compilation:
+     $ make lib
+
+Cleaning:
+     $ make clean
+
+Test file:
+     $ make test
+
+Tags:
+     $ make tags
+# This target will create tags for both emacs and vim. We do not advertize any editor :-)
+
+Code Organization
+--------------------
+
+- The mymutex.h is the header file containing the structure definitions and function prototypes 
+  for the mymutex implementation. Consequently, mymutex.c file contains the function definitions
+  of mymutex implementation.  
+- The mymutex implementation is a hybrid implementation of MCS-locks with a threshold of 100 tries
+  for busy-wait looks and suspension if the threshold is exceeded without acquiring the lock.
+- The mymutex implementation also consists of a fetch_and_store semantics using the already
+  provided compare_and_swap atomic function.
+- We use block* and unblock* functions provided with the mythread.a when a thread blocks without 
+  acquiring the lock. 
+- The "state" data member of mythread_t structure - which was unused till now, is used in mutex_*
+  functions for checking if unblock needs to be called.
+
+
+- On similar lines, the mycond.h header file contains the structure definitions and prototypes 
+  for mycond implementation. The mycond.c contains the code for actual implementation. 
+- Here again, we make use of the block_phase1 and block_phase2 APIs provided to ensure 
+  the atomic property of cond_wait primitive. 
+- The code maintains/updates the queues of all the threads wait-ing on condition variables and
+  during broadcast, we traverse the queue to wake up every thread individually.
+
+Test Programs
+-------------
+
+To thoroughly test the implementation we have provided 3 test files.
+
+One test file specifically tests the mymutex implementation and the other mycond implementation.
+
+To handle more significant race conditions and to provide a real-world testing scenario,
+we have ported the Part-2 of Homework-2 to work with mythread_*
+
+1. mytest_mutex.c 
+   We start 100 threads. Each thread will try to lock a mutex 4 times and add 1 to a global variable each time.
+   The main does a join on all 100 threads and after join, it displays the global variable count.
+   
+2. mytest_cond.c
+   Again, we spawn 100 threads. They wait on a condition variable. 
+   Main does a signal and each woken up thread continues to signal other sleeping threads till all of them exit.
+
+3. mytest_p2.c
+   As mentioned, this is p2 implementation ported to work with mythread. We have included a sample input file
+   to test out a bunch of scenarios for Hacker/Serf rowBoat problem.
+   How to run the program -
+   $ ./mytest_p2 < ip-test-file
